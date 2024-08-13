@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     alert("Left Click on PC or tap the screen on mobile to Start game");
-})
+});
 
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 const win_prompt = document.getElementById('win-prompt');
 const lose_prompt = document.getElementById('lose-prompt');
-
 
 let ballRadius = 10;
 let x = canvas.width / 2;
@@ -29,10 +28,13 @@ let score = 0;
 let lives = 3;
 let gameStarted = false; // Flag to check if the game has started
 
+let startX; // Variables for swipe handling
+let startY;
+
 const bricks = [];
-for (c = 0; c < brickColumnCount; c++) {
+for (let c = 0; c < brickColumnCount; c++) {
     bricks[c] = [];
-    for (r = 0; r < brickRowCount; r++) {
+    for (let r = 0; r < brickRowCount; r++) {
         bricks[c][r] = { x: 0, y: 0, status: 1 };
     }
 }
@@ -43,6 +45,10 @@ document.addEventListener("mousemove", mouseMoveHandler, false);
 document.addEventListener("keydown", startGame, false); // Add event listener for spacebar
 canvas.addEventListener("click", startGame, false); // Add event listener for mobile tap
 
+canvas.addEventListener("touchstart", touchStartHandler, false);
+canvas.addEventListener("touchmove", touchMoveHandler, false);
+canvas.addEventListener("touchend", touchEndHandler, false);
+
 function keyDownHandler(e) {
     if (e.keyCode == 39) {
         rightPressed = true;
@@ -51,6 +57,7 @@ function keyDownHandler(e) {
         leftPressed = true;
     }
 }
+
 function keyUpHandler(e) {
     if (e.keyCode == 39) {
         rightPressed = false;
@@ -59,6 +66,7 @@ function keyUpHandler(e) {
         leftPressed = false;
     }
 }
+
 function mouseMoveHandler(e) {
     const relativeX = e.clientX - canvas.offsetLeft;
     if (relativeX > 0 && relativeX < canvas.width) {
@@ -66,13 +74,33 @@ function mouseMoveHandler(e) {
     }
 }
 
+// Touch event handlers for swipe
+function touchStartHandler(e) {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+}
+
+function touchMoveHandler(e) {
+    e.preventDefault(); // Prevent scrolling during swipe
+    const touch = e.touches[0];
+    const relativeX = touch.clientX - canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth / 2;
+    }
+}
+
+function touchEndHandler(e) {
+    // Optionally handle actions on touch end if needed
+}
+
 function rtyFunc() {
     document.location.reload();
 }
 
 function collisionDetection() {
-    for (c = 0; c < brickColumnCount; c++) {
-        for (r = 0; r < brickRowCount; r++) {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
             const b = bricks[c][r];
             if (b.status == 1) {
                 if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
@@ -97,6 +125,7 @@ function drawBall() {
     ctx.fill();
     ctx.closePath();
 }
+
 function drawPaddle() {
     ctx.beginPath();
     ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
@@ -104,9 +133,10 @@ function drawPaddle() {
     ctx.fill();
     ctx.closePath();
 }
+
 function drawBricks() {
-    for (c = 0; c < brickColumnCount; c++) {
-        for (r = 0; r < brickRowCount; r++) {
+    for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
             if (bricks[c][r].status == 1) {
                 const brickX = (r * (brickWidth + brickPadding)) + brickOffsetLeft;
                 const brickY = (c * (brickHeight + brickPadding)) + brickOffsetTop;
@@ -121,11 +151,13 @@ function drawBricks() {
         }
     }
 }
+
 function drawScore() {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
     ctx.fillText("Score: " + score, 8, 20);
 }
+
 function drawLives() {
     ctx.font = "16px Arial";
     ctx.fillStyle = "#0095DD";
